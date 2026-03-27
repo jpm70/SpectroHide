@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpectroHide – Un Fantasma en el Sistema</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0c10;--surface:#0f1218;--surface2:#161b24;--border:#1e2a38;
+    --accent:#e8281c;--accent2:#ff5a50;--text:#c8d8e8;--muted:#5a7080;
+    --green:#20c060;--yellow:#f0c040;
+    --mono:'Share Tech Mono',monospace;--sans:'Rajdhani',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+
+  /* HEADER */
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;}
+  .logo-area{display:flex;align-items:center;gap:14px;}
+  .logo-img{width:56px;height:56px;object-fit:contain;}
+  .brand{display:flex;flex-direction:column;}
+  .brand-title{font-size:22px;font-weight:700;color:#fff;letter-spacing:1px;line-height:1;}
+  .brand-sub{font-size:12px;color:var(--muted);letter-spacing:2px;font-family:var(--mono);}
+  .header-right{display:flex;align-items:center;gap:16px;}
+  .site-link{font-family:var(--mono);font-size:12px;color:var(--accent2);text-decoration:none;border:1px solid var(--accent);padding:5px 12px;border-radius:3px;transition:all .2s;}
+  .site-link:hover{background:var(--accent);color:#fff;}
+  .badge-ctf{font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--green);padding:4px 10px;border-radius:2px;letter-spacing:1px;}
+
+  /* TABS */
+  .tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);}
+  .tab-btn{flex:1;padding:14px;font-family:var(--sans);font-size:15px;font-weight:600;letter-spacing:1px;background:none;border:none;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;text-transform:uppercase;}
+  .tab-btn.active{color:var(--accent2);border-bottom-color:var(--accent);background:var(--surface2);}
+  .tab-btn:hover:not(.active){color:var(--text);background:rgba(255,255,255,.03);}
+
+  /* LAYOUT */
+  .content{padding:28px 32px;max-width:1100px;margin:0 auto;}
+  .panel{display:none;}
+  .panel.active{display:grid;grid-template-columns:380px 1fr;gap:24px;}
+  @media(max-width:768px){.panel.active{grid-template-columns:1fr;}.content{padding:16px;}}
+
+  /* CARDS */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:20px;margin-bottom:16px;}
+  .card-title{font-size:13px;font-family:var(--mono);color:var(--accent2);letter-spacing:2px;margin-bottom:16px;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+  .card-title::before{content:'▸';color:var(--accent);}
+
+  /* FIELDS */
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;font-family:var(--mono);color:var(--muted);margin-bottom:5px;letter-spacing:1px;}
+  input[type=text],input[type=number],select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:14px;padding:8px 10px;border-radius:3px;outline:none;transition:border .2s;}
+  input:focus,select:focus{border-color:var(--accent);}
+  select{cursor:pointer;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  /* BUTTONS */
+  .btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;font-family:var(--mono);font-size:14px;letter-spacing:1px;cursor:pointer;border-radius:3px;transition:background .2s;text-transform:uppercase;margin-top:4px;}
+  .btn:hover{background:var(--accent2);}
+  .btn.secondary{background:transparent;border:1px solid var(--green);color:var(--green);}
+  .btn.secondary:hover{background:var(--green);color:#000;}
+  .btn.yellow-btn{background:transparent;border:1px solid var(--yellow);color:var(--yellow);}
+  .btn.yellow-btn:hover{background:var(--yellow);color:#000;}
+
+  /* SLIDER */
+  input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--border);border-radius:2px;outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;}
+  .slider-row{display:flex;align-items:center;gap:10px;}
+  .slbl{font-family:var(--mono);font-size:11px;color:var(--muted);}
+
+  /* CANVAS */
+  .canvas-wrap{border:1px solid var(--border);border-radius:3px;overflow:hidden;background:#000;position:relative;min-height:280px;}
+  canvas{display:block;width:100%;}
+  .canvas-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;color:var(--muted);flex-direction:column;gap:8px;}
+  .canvas-empty span{font-size:28px;opacity:.3;}
+
+  /* DROP */
+  .drop-zone{border:2px dashed var(--border);border-radius:3px;padding:22px 16px;text-align:center;cursor:pointer;font-family:var(--mono);font-size:13px;color:var(--muted);margin-bottom:14px;transition:all .2s;}
+  .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);color:var(--text);background:rgba(232,40,28,.05);}
+
+  /* INFO */
+  .info-row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;}
+  .info-chip{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:3px 8px;border-radius:2px;}
+  .info-chip.hi{color:var(--green);border-color:rgba(32,192,96,.4);}
+
+  /* PROGRESS */
+  .progress{height:2px;background:var(--border);border-radius:1px;margin-bottom:8px;display:none;}
+  .progress-bar{height:100%;background:var(--accent);border-radius:1px;transition:width .2s;}
+
+  /* CMAP */
+  .cmap-btns{display:flex;gap:6px;}
+  .cmap-btn{flex:1;padding:6px;font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--muted);cursor:pointer;border-radius:2px;text-align:center;transition:all .2s;}
+  .cmap-btn.active{border-color:var(--accent);color:var(--accent2);background:rgba(232,40,28,.08);}
+
+  /* FOOTER */
+  .footer{text-align:center;padding:20px;font-family:var(--mono);font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:32px;}
+  .footer a{color:var(--accent2);text-decoration:none;}
+
+  /* ── AUDACITY MODAL ── */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;align-items:center;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--accent);border-radius:6px;width:660px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:30px 34px;position:relative;}
+  .modal-close{position:absolute;top:14px;right:18px;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;font-family:var(--mono);line-height:1;}
+  .modal-close:hover{color:var(--accent2);}
+  .modal-title{font-family:var(--mono);font-size:16px;color:var(--yellow);letter-spacing:2px;margin-bottom:22px;text-transform:uppercase;}
+  .modal-title::before{content:'▸ ';color:var(--accent);}
+  .step{display:flex;gap:14px;margin-bottom:22px;}
+  .step-num{min-width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+  .step-body{flex:1;}
+  .step-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:6px;}
+  .step-desc{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:8px;}
+  .step-desc code{color:var(--accent2);font-family:var(--mono);}
+  .settings-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:8px;}
+  .settings-table th{text-align:left;color:var(--muted);padding:4px 10px 4px 0;border-bottom:1px solid var(--border);font-weight:400;letter-spacing:1px;font-size:11px;}
+  .settings-table td{padding:7px 10px 7px 0;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;}
+  .settings-table td:first-child{color:var(--text);min-width:190px;}
+  .settings-table td:last-child{color:var(--yellow);font-weight:600;}
+  .settings-table tr.key-row td{background:rgba(240,192,64,.04);}
+  .tip-box{background:rgba(32,192,96,.07);border:1px solid rgba(32,192,96,.3);border-radius:3px;padding:13px 16px;font-family:var(--mono);font-size:12px;color:var(--green);line-height:1.75;margin-top:16px;}
+  .tip-box strong{color:#fff;}
+  .warn-box{background:rgba(232,40,28,.07);border:1px solid rgba(232,40,28,.3);border-radius:3px;padding:13px 16px;font-family:var(--mono);font-size:12px;color:var(--accent2);line-height:1.75;margin-top:10px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo-area">
+    <img class="logo-img" src="icono.png" alt="Un Fantasma en el Sistema"
+         onerror="this.style.fontSize='40px';this.style.width='auto';this.outerHTML='<span style=\'font-size:40px\'>👻</span>'">
+    <div class="brand">
+      <div class="brand-title">SpectroHide</div>
+      <div class="brand-sub">CTF Audio Steganography Tool</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="badge-ctf">&#9632; CTF TOOL</div>
+    <a class="site-link" href="https://www.unfantasmaenelsistema.com" target="_blank">unfantasmaenelsistema.com</a>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('gen')">&#9670; Generar audio</button>
+  <button class="tab-btn" onclick="switchTab('ana')">&#9670; Analizar audio</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ── GENERADOR ── -->
+  <div class="panel active" id="tab-gen">
+    <div>
+      <div class="card">
+        <div class="card-title">Texto oculto</div>
+        <div class="field">
+          <label>Texto a esconder en el espectrograma</label>
+          <input type="text" id="gen-text" value="CTF{h1dd3n}" placeholder="Escribe el texto del reto...">
+        </div>
+        <div class="row2">
+          <div class="field"><label>Duración (s)</label><input type="number" id="gen-dur" value="8" min="2" max="30"></div>
+          <div class="field"><label>Sample rate</label>
+            <select id="gen-sr"><option value="22050">22050 Hz</option><option value="44100" selected>44100 Hz</option></select>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Freq. central (Hz)</label><input type="number" id="gen-freq" value="6000" min="500" max="18000" step="100"></div>
+          <div class="field"><label>Ancho de banda (Hz)</label><input type="number" id="gen-height" value="4000" min="200" max="8000" step="100"></div>
+        </div>
+        <div class="field">
+          <label>Intensidad &nbsp;<span id="gen-intensity-val" style="color:var(--accent2)">95</span></label>
+          <div class="slider-row">
+            <span class="slbl">10</span>
+            <input type="range" id="gen-intensity" min="10" max="100" value="95"
+                   oninput="document.getElementById('gen-intensity-val').textContent=this.value">
+            <span class="slbl">100</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Ruido de fondo &nbsp;<span id="gen-noise-val" style="color:var(--accent2)">8</span></label>
+          <div class="slider-row">
+            <span class="slbl">0</span>
+            <input type="range" id="gen-noise" min="0" max="60" value="8"
+                   oninput="document.getElementById('gen-noise-val').textContent=this.value">
+            <span class="slbl">60</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Mezcla con audio base</div>
+        <div class="field">
+          <label>Audio base opcional (WAV / MP3 / OGG)</label>
+          <div class="drop-zone" id="gen-drop"
+               onclick="document.getElementById('gen-base-file').click()"
+               ondragover="onDragOver(event,'gen-drop')" ondragleave="onDragLeave('gen-drop')" ondrop="onDropBase(event)">
+            Arrastra o selecciona un audio base
+          </div>
+          <input type="file" id="gen-base-file" accept="audio/*" style="display:none" onchange="loadBaseAudio(this.files[0])">
+          <div id="gen-base-info" style="font-family:var(--mono);font-size:11px;color:var(--green);margin-top:4px;display:none"></div>
+        </div>
+        <div class="field" id="gen-mix-vol-wrap" style="display:none">
+          <label>Vol. audio base &nbsp;<span id="gen-mix-vol-val" style="color:var(--accent2)">40</span>%</label>
+          <div class="slider-row">
+            <span class="slbl">0</span>
+            <input type="range" id="gen-mix-vol" min="0" max="100" value="40"
+                   oninput="document.getElementById('gen-mix-vol-val').textContent=this.value">
+            <span class="slbl">100</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn" onclick="generateAudio()">&#9654; Generar audio</button>
+      <button class="btn yellow-btn" onclick="openAudacityModal()" style="margin-top:8px">
+        &#9432; Ver configuración en Audacity
+      </button>
+      <button class="btn secondary" id="gen-dl-btn" onclick="downloadAudio()" style="display:none;margin-top:8px">
+        &#11015; Descargar WAV
+      </button>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-title">Vista previa del espectrograma</div>
+        <div class="canvas-wrap" id="gen-canvas-wrap">
+          <div class="canvas-empty" id="gen-empty"><span>&#9661;</span>Genera un audio para ver el espectrograma</div>
+          <canvas id="gen-canvas" style="display:none"></canvas>
+        </div>
+        <div class="info-row" id="gen-info-row" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ANALIZADOR ── -->
+  <div class="panel" id="tab-ana">
+    <div>
+      <div class="card">
+        <div class="card-title">Cargar audio</div>
+        <div class="drop-zone" id="ana-drop"
+             onclick="document.getElementById('ana-file-input').click()"
+             ondragover="onDragOver(event,'ana-drop')" ondragleave="onDragLeave('ana-drop')" ondrop="onDropAna(event)">
+          Arrastra un archivo de audio aquí<br>
+          <span style="font-size:11px;color:var(--muted)">WAV · MP3 · OGG · M4A</span>
+        </div>
+        <input type="file" id="ana-file-input" accept="audio/*" style="display:none" onchange="loadAnalysisFile(this.files[0])">
+        <div class="progress" id="ana-prog"><div class="progress-bar" id="ana-prog-bar"></div></div>
+        <div id="ana-file-info" style="font-family:var(--mono);font-size:11px;color:var(--green);display:none;margin-bottom:10px"></div>
+      </div>
+
+      <div class="card" id="ana-controls" style="display:none">
+        <div class="card-title">Controles</div>
+        <div class="row2">
+          <div class="field"><label>Freq. mín (Hz)</label><input type="number" id="ana-fmin" value="0" min="0" onchange="redrawSpec()"></div>
+          <div class="field"><label>Freq. máx (Hz)</label><input type="number" id="ana-fmax" value="8000" min="100" onchange="redrawSpec()"></div>
+        </div>
+        <div class="field"><label>Ventana FFT</label>
+          <select id="ana-fft" onchange="reanalyze()">
+            <option value="512">512</option><option value="1024" selected>1024</option>
+            <option value="2048">2048</option><option value="4096">4096</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Brillo &nbsp;<span id="ana-bright-val" style="color:var(--accent2)">2.0</span></label>
+          <div class="slider-row">
+            <span class="slbl">0.5</span>
+            <input type="range" id="ana-brightness" min="5" max="100" value="20"
+                   oninput="document.getElementById('ana-bright-val').textContent=(this.value/10).toFixed(1);redrawSpec()">
+            <span class="slbl">10</span>
+          </div>
+        </div>
+        <div class="field"><label>Mapa de color</label>
+          <div class="cmap-btns">
+            <button class="cmap-btn active" onclick="setColormap('gray',this)">Gris</button>
+            <button class="cmap-btn" onclick="setColormap('green',this)">Verde</button>
+            <button class="cmap-btn" onclick="setColormap('heat',this)">Calor</button>
+          </div>
+        </div>
+        <button class="btn secondary" onclick="downloadSpectrogram()" style="margin-top:4px">&#11015; Imagen PNG</button>
+        <button class="btn yellow-btn" onclick="openAudacityModal()" style="margin-top:8px">&#9432; Ver configuración en Audacity</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-title">Espectrograma</div>
+        <div class="canvas-wrap" id="ana-canvas-wrap">
+          <div class="canvas-empty" id="ana-empty"><span>&#9661;</span>Carga un audio para analizar</div>
+          <canvas id="ana-canvas" style="display:none"></canvas>
+        </div>
+        <div class="info-row" id="ana-info-row" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  SpectroHide &mdash; CTF Audio Steganography &mdash;
+  <a href="https://www.unfantasmaenelsistema.com" target="_blank">unfantasmaenelsistema.com</a>
+</div>
+
+<!-- ══ AUDACITY MODAL ══ -->
+<div class="modal-overlay" id="audacity-modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('audacity-modal').classList.remove('open')">✕</button>
+    <div class="modal-title">Configuración en Audacity</div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Abre el WAV en Audacity</div>
+        <div class="step-desc">Archivo → Abrir… y selecciona el <code>ctf_hidden_*.wav</code> descargado con SpectroHide.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Cambia a vista Spectrogram</div>
+        <div class="step-desc">
+          Haz clic en la <strong style="color:#fff">flecha ▾</strong> junto al nombre de la pista
+          → selecciona <strong style="color:#fff">Spectrogram</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Spectrogram Settings — valores exactos</div>
+        <div class="step-desc">Flecha ▾ de la pista → <strong style="color:#fff">Spectrogram Settings…</strong></div>
+        <table class="settings-table">
+          <tr><th>Parámetro</th><th>Valor recomendado</th></tr>
+          <tr class="key-row"><td>Window size</td><td id="aud-window">1024</td></tr>
+          <tr><td>Window type</td><td>Hann</td></tr>
+          <tr><td>Zero padding factor</td><td>1</td></tr>
+          <tr class="key-row"><td>Minimum frequency (Hz)</td><td id="aud-fmin">4000</td></tr>
+          <tr class="key-row"><td>Maximum frequency (Hz)</td><td id="aud-fmax">8000</td></tr>
+          <tr class="key-row"><td>Gain (dB)</td><td id="aud-gain">+20</td></tr>
+          <tr><td>Range (dB)</td><td>80</td></tr>
+          <tr><td>Frequency gain (dB/dec)</td><td>0</td></tr>
+          <tr><td>Grayscale</td><td>✓ activado</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">Zoom vertical en la banda correcta</div>
+        <div class="step-desc">
+          En la regla de frecuencias (borde izquierdo de la pista), haz
+          <strong style="color:#fff">clic derecho → Zoom to Fit</strong>
+          o arrastra para centrar la vista entre
+          <strong style="color:var(--yellow)" id="tip-lo2">4000</strong> Hz y
+          <strong style="color:var(--yellow)" id="tip-hi2">8000</strong> Hz.<br>
+          El texto debe llenar toda la altura de la pista.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <div class="step-title">Si el texto sigue poco visible</div>
+        <div class="step-desc">
+          Sube el <strong style="color:#fff">Gain</strong> a +30 dB, baja el
+          <strong style="color:#fff">Range</strong> a 60 dB o aplica
+          <em>Effect → Amplify</em> antes de ver el espectrograma.
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <strong>Clave para que el texto no salga achatado:</strong><br>
+      El rango Min–Max de Audacity debe coincidir <em>exactamente</em> con tu ancho de banda.<br>
+      Con tu configuración actual: texto entre
+      <strong id="tip-lo">4000</strong> Hz y <strong id="tip-hi">8000</strong> Hz.<br>
+      Pon esos mismos valores en Audacity → el texto llenará toda la altura de la pista.
+    </div>
+
+    <div class="warn-box">
+      ⚠ Usa siempre el WAV original. Si el archivo fue re-comprimido (MP3, etc.)
+      antes de abrirlo en Audacity, los datos del espectrograma se degradan
+      y el texto puede volverse ilegible.
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CORE ─────────────────────────────────────────────
+let audioCtx=null;
+function getAC(){if(!audioCtx)audioCtx=new AudioContext();return audioCtx;}
+function switchTab(t){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(i===0&&t==='gen')||(i===1&&t==='ana')));
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',(i===0&&t==='gen')||(i===1&&t==='ana')));
+}
+function onDragOver(e,id){e.preventDefault();document.getElementById(id).classList.add('drag-over');}
+function onDragLeave(id){document.getElementById(id).classList.remove('drag-over');}
+
+// ── FFT ──────────────────────────────────────────────
+function fft(re,im,N){
+  if(N<=1)return;
+  const h=N>>1;
+  const rE=new Float64Array(h),iE=new Float64Array(h),rO=new Float64Array(h),iO=new Float64Array(h);
+  for(let i=0;i<h;i++){rE[i]=re[2*i];iE[i]=im[2*i];rO[i]=re[2*i+1];iO[i]=im[2*i+1];}
+  fft(rE,iE,h);fft(rO,iO,h);
+  for(let k=0;k<h;k++){
+    const a=-2*Math.PI*k/N,c=Math.cos(a),s=Math.sin(a);
+    const tr=c*rO[k]-s*iO[k],ti=s*rO[k]+c*iO[k];
+    re[k]=rE[k]+tr;im[k]=iE[k]+ti;re[k+h]=rE[k]-tr;im[k+h]=iE[k]-ti;
+  }
+}
+function fftMag(sig,N){
+  const re=new Float64Array(N),im=new Float64Array(N);
+  for(let i=0;i<N;i++)re[i]=sig[i]||0;
+  fft(re,im,N);
+  const mag=new Float32Array(N/2);
+  for(let i=0;i<N/2;i++)mag[i]=Math.sqrt(re[i]*re[i]+im[i]*im[i])/N;
+  return mag;
+}
+
+// ── COLORMAP ─────────────────────────────────────────
+let cmap='gray';
+function setColormap(n,el){cmap=n;document.querySelectorAll('.cmap-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');redrawSpec();}
+function applyColormap(v){
+  const x=Math.min(255,Math.floor(v));
+  if(cmap==='green')return[0,Math.min(255,Math.floor(v*1.3)),0];
+  if(cmap==='heat')return[Math.min(255,x*3),Math.min(255,Math.max(0,(x-85)*3)),Math.min(255,Math.max(0,(x-170)*3))];
+  return[x,x,x];
+}
+
+// ── AUDACITY MODAL ───────────────────────────────────
+function openAudacityModal(){
+  const center=parseInt(document.getElementById('gen-freq').value)||6000;
+  const bw=parseInt(document.getElementById('gen-height').value)||4000;
+  const lo=Math.round(center-bw/2);
+  const hi=Math.round(center+bw/2);
+  const win=bw>=3000?1024:2048;
+  const noise=parseInt(document.getElementById('gen-noise').value)||8;
+  const gain=noise<15?'+20':'+28';
+  document.getElementById('aud-window').textContent=win;
+  document.getElementById('aud-fmin').textContent=lo+' Hz';
+  document.getElementById('aud-fmax').textContent=hi+' Hz';
+  document.getElementById('aud-gain').textContent=gain+' dB';
+  document.getElementById('tip-lo').textContent=lo;
+  document.getElementById('tip-hi').textContent=hi;
+  document.getElementById('tip-lo2').textContent=lo;
+  document.getElementById('tip-hi2').textContent=hi;
+  document.getElementById('audacity-modal').classList.add('open');
+}
+function closeModalOutside(e){if(e.target===document.getElementById('audacity-modal'))document.getElementById('audacity-modal').classList.remove('open');}
+
+// ── GENERADOR ────────────────────────────────────────
+let genBuffer=null,baseAudioBuffer=null;
+function onDropBase(e){e.preventDefault();onDragLeave('gen-drop');loadBaseAudio(e.dataTransfer.files[0]);}
+function loadBaseAudio(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    getAC().decodeAudioData(ev.target.result).then(ab=>{
+      baseAudioBuffer=ab;
+      document.getElementById('gen-base-info').style.display='block';
+      document.getElementById('gen-base-info').textContent='✓ '+file.name+' ('+ab.duration.toFixed(2)+'s)';
+      document.getElementById('gen-mix-vol-wrap').style.display='block';
+    }).catch(()=>alert('No se pudo decodificar el audio base.'));
+  };
+  r.readAsArrayBuffer(file);
+}
+function renderTextMask(text,W,H){
+  const c=document.createElement('canvas');c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  const fs=Math.max(12,Math.min(H*0.72,W/(text.length*0.62)));
+  ctx.font=`bold ${fs}px monospace`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle='#fff';ctx.fillText(text,W/2,H/2);
+  return ctx.getImageData(0,0,W,H).data;
+}
+function generateAudio(){
+  const text=document.getElementById('gen-text').value.trim()||'CTF';
+  const dur=parseFloat(document.getElementById('gen-dur').value)||8;
+  const sr=parseInt(document.getElementById('gen-sr').value);
+  const cFreq=parseInt(document.getElementById('gen-freq').value)||6000;
+  const bH=parseInt(document.getElementById('gen-height').value)||4000;
+  const intens=parseInt(document.getElementById('gen-intensity').value)/100;
+  const noise=parseInt(document.getElementById('gen-noise').value)/100;
+  const N=Math.floor(dur*sr);
+  const data=new Float32Array(N);
+  const COLS=256,ROWS=128;
+  const mask=renderTextMask(text,COLS,ROWS);
+  const fLo=cFreq-bH/2,fHi=cFreq+bH/2;
+  for(let col=0;col<COLS;col++){
+    const tS=Math.floor(col*(dur/COLS)*sr),tE=Math.floor((col+1)*(dur/COLS)*sr);
+    for(let row=0;row<ROWS;row++){
+      const px=((ROWS-1-row)*COLS+col)*4;
+      const bri=mask[px]/255;
+      if(bri<0.05)continue;
+      const freq=fLo+(row/ROWS)*(fHi-fLo);
+      for(let t=tS;t<tE&&t<N;t++) data[t]+=bri*intens*Math.sin(2*Math.PI*freq*(t/sr))*0.1;
+    }
+  }
+  for(let i=0;i<N;i++) data[i]+=(Math.random()*2-1)*noise*0.1;
+  if(baseAudioBuffer){
+    const bvol=parseInt(document.getElementById('gen-mix-vol').value)/100;
+    const bd=baseAudioBuffer.getChannelData(0),bsr=baseAudioBuffer.sampleRate;
+    for(let i=0;i<N;i++){const bi=Math.floor(i*(bsr/sr));if(bi<bd.length)data[i]+=bd[bi]*bvol*0.3;}
+  }
+  let mx=0;for(let i=0;i<N;i++)mx=Math.max(mx,Math.abs(data[i]));
+  if(mx>0)for(let i=0;i<N;i++)data[i]/=mx;
+  genBuffer={data,sr,dur};
+  const ab=getAC().createBuffer(1,N,sr);ab.copyToChannel(data,0);
+  drawGenSpec(ab,fLo,fHi,bH);
+  document.getElementById('gen-dl-btn').style.display='block';
+  document.getElementById('gen-info-row').style.display='flex';
+  document.getElementById('gen-info-row').innerHTML=
+    `<span class="info-chip hi">${dur}s</span><span class="info-chip">${cFreq}Hz ±${bH/2}Hz</span><span class="info-chip">${sr}Hz SR</span><span class="info-chip">${text}</span>`;
+}
+function drawGenSpec(ab,fLo,fHi,bH){
+  const cv=document.getElementById('gen-canvas');
+  const wrap=document.getElementById('gen-canvas-wrap');
+  const W=wrap.offsetWidth||800;cv.width=W;cv.height=300;
+  const FS=2048,data=ab.getChannelData(0),sr=ab.sampleRate;
+  const hop=Math.max(1,Math.floor(data.length/W));
+  const ctx=cv.getContext('2d'),img=ctx.createImageData(W,300);
+  for(let x=0;x<W;x++){
+    const si=x*hop;const seg=new Float32Array(FS);
+    for(let i=0;i<FS&&(si+i)<data.length;i++)seg[i]=data[si+i]*(0.5-0.5*Math.cos(2*Math.PI*i/FS));
+    const spec=fftMag(seg,FS);
+    for(let y=0;y<300;y++){
+      const freq=(fLo+bH)-(y/300)*bH*1.5;
+      const bi=Math.floor(freq/sr*FS);
+      const mag=bi>=0&&bi<spec.length?Math.min(1,spec[bi]*3):0;
+      const[r,g,b]=applyColormap(mag*255);const px=(y*W+x)*4;
+      img.data[px]=r;img.data[px+1]=g;img.data[px+2]=b;img.data[px+3]=255;
+    }
+  }
+  ctx.putImageData(img,0,0);
+  ctx.fillStyle='rgba(255,255,255,.65)';ctx.font='11px monospace';
+  ctx.fillText(Math.round(fLo+bH)+' Hz',4,14);ctx.fillText(Math.round(fLo)+' Hz',4,296);
+  document.getElementById('gen-empty').style.display='none';
+  cv.style.display='block';
+}
+function downloadAudio(){
+  if(!genBuffer)return;
+  const{data,sr}=genBuffer;const N=data.length;
+  const buf=new ArrayBuffer(44+N*2);const v=new DataView(buf);
+  const mk=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+  mk(0,'RIFF');v.setUint32(4,36+N*2,true);mk(8,'WAVE');mk(12,'fmt ');
+  v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);
+  mk(36,'data');v.setUint32(40,N*2,true);
+  for(let i=0;i<N;i++){const x=Math.max(-1,Math.min(1,data[i]));v.setInt16(44+i*2,x<0?x*0x8000:x*0x7FFF,true);}
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
+  a.download='ctf_hidden_'+document.getElementById('gen-text').value.replace(/[^a-z0-9]/gi,'_')+'.wav';
+  a.click();
+}
+
+// ── ANALIZADOR ───────────────────────────────────────
+let anaSpec=null,anaAB=null;
+function onDropAna(e){e.preventDefault();onDragLeave('ana-drop');loadAnalysisFile(e.dataTransfer.files[0]);}
+function loadAnalysisFile(file){
+  if(!file)return;
+  const prog=document.getElementById('ana-prog'),bar=document.getElementById('ana-prog-bar');
+  prog.style.display='block';bar.style.width='20%';
+  const r=new FileReader();
+  r.onload=ev=>{
+    bar.style.width='50%';
+    getAC().decodeAudioData(ev.target.result).then(ab=>{
+      anaAB=ab;bar.style.width='100%';setTimeout(()=>prog.style.display='none',400);
+      document.getElementById('ana-file-info').style.display='block';
+      document.getElementById('ana-file-info').textContent='✓ '+file.name+' — '+ab.duration.toFixed(2)+'s · '+ab.sampleRate+' Hz';
+      document.getElementById('ana-fmax').value=Math.min(8000,Math.floor(ab.sampleRate/2));
+      document.getElementById('ana-controls').style.display='block';
+      analyzeAudio(ab);
+    }).catch(err=>{prog.style.display='none';alert('Error: '+err.message);});
+  };
+  r.readAsArrayBuffer(file);
+}
+function reanalyze(){if(anaAB)analyzeAudio(anaAB);}
+function analyzeAudio(ab){
+  const FS=parseInt(document.getElementById('ana-fft').value);
+  const data=ab.getChannelData(0),sr=ab.sampleRate;
+  const cv=document.getElementById('ana-canvas');
+  const W=document.getElementById('ana-canvas-wrap').offsetWidth||800;
+  cv.width=W;cv.height=350;
+  const hop=Math.max(1,Math.floor(data.length/W));
+  const nC=Math.min(W,Math.floor((data.length-FS)/hop)+1);
+  anaSpec=[];
+  for(let c=0;c<nC;c++){
+    const st=c*hop;const seg=new Float32Array(FS);
+    for(let i=0;i<FS;i++)if(st+i<data.length)seg[i]=data[st+i]*(0.5-0.5*Math.cos(2*Math.PI*i/FS));
+    anaSpec.push(fftMag(seg,FS));
+  }
+  document.getElementById('ana-empty').style.display='none';cv.style.display='block';
+  document.getElementById('ana-info-row').style.display='flex';
+  document.getElementById('ana-info-row').innerHTML=
+    `<span class="info-chip hi">${ab.duration.toFixed(2)}s</span><span class="info-chip">${sr} Hz</span><span class="info-chip">FFT ${FS}</span>`;
+  drawAnaSpec(anaSpec,sr,FS,W);
+}
+function redrawSpec(){
+  if(!anaSpec||!anaAB)return;
+  drawAnaSpec(anaSpec,anaAB.sampleRate,parseInt(document.getElementById('ana-fft').value),document.getElementById('ana-canvas').width);
+}
+function drawAnaSpec(matrix,sr,FS,W){
+  const cv=document.getElementById('ana-canvas'),H=350;
+  const fmin=Math.max(0,parseInt(document.getElementById('ana-fmin').value)||0);
+  const fmax=Math.min(sr/2,parseInt(document.getElementById('ana-fmax').value)||8000);
+  const bright=(parseInt(document.getElementById('ana-brightness').value)/10)||2;
+  const ctx=cv.getContext('2d'),img=ctx.createImageData(W,H);
+  const bMin=Math.floor(fmin/(sr/2)*(FS/2));
+  const bMax=Math.min(Math.floor(fmax/(sr/2)*(FS/2)),FS/2-1);
+  for(let x=0;x<Math.min(W,matrix.length);x++){
+    const spec=matrix[x];
+    for(let y=0;y<H;y++){
+      const bi=bMax-Math.floor((y/H)*(bMax-bMin));
+      const mag=bi>=0&&bi<spec.length?spec[bi]:0;
+      const vv=Math.min(255,Math.floor(mag*255*bright*40));
+      const[r,g,b]=applyColormap(vv);const px=(y*W+x)*4;
+      img.data[px]=r;img.data[px+1]=g;img.data[px+2]=b;img.data[px+3]=255;
+    }
+  }
+  ctx.putImageData(img,0,0);
+  ctx.fillStyle='rgba(255,255,255,.65)';ctx.font='11px monospace';
+  ctx.fillText(fmax+' Hz',4,14);ctx.fillText(Math.round((fmax+fmin)/2)+' Hz',4,H/2+4);ctx.fillText(fmin+' Hz',4,H-4);
+}
+function downloadSpectrogram(){
+  const a=document.createElement('a');
+  a.href=document.getElementById('ana-canvas').toDataURL('image/png');
+  a.download='espectrograma_ctf.png';a.click();
+}
+</script>
+</body>
+</html>
